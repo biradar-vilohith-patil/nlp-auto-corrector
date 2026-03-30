@@ -177,7 +177,7 @@ export default function Home() {
         />
 
       </div>
-      {/* ══════════ ACADEMIC EVALUATION METRICS DASHBOARD ══════════ */}
+{/* ══════════ ACADEMIC EVALUATION METRICS DASHBOARD ══════════ */}
       <AnimatePresence>
         {correctionResult && (
           <motion.div
@@ -197,21 +197,25 @@ export default function Home() {
               
               {/* Data Calculation (Handled inline for the UI) */}
               {(() => {
-                const errors = (correctionResult.spell_fixed || 0) + (correctionResult.grammar_fixed || 0) + (correctionResult.homophone_fixed || 0);
+                const spell = correctionResult.spell_fixed || 0;
+                const grammar = correctionResult.grammar_fixed || 0;
+                const homophone = correctionResult.homophone_fixed || 0;
+                const totalErrors = spell + grammar + homophone;
                 const words = correctionResult.original ? correctionResult.original.trim().split(/\s+/).length : 1;
+                const confidence = correctionResult.confidence ?? 1;
                 
-                // NEW FORMULA: Accuracy Ratio (Words / (Words + Errors))
-                const qualityScore = Math.round((words / (words + errors)) * 100);
-const burdenScore = Math.round((words -errors) / words)*100;
+                // Accurate quality score based on percentage of correct words
+                const qualityScore = Math.max(0, Math.round(((words - totalErrors) / words) * 100));
+
                 return (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
                     
                     {/* Panel 1: User Text Quality Score */}
-                    <div style={{ padding: '24px', background: 'var(--surface-alt)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                    <div style={{ padding: '24px', background: 'var(--surface-alt)', borderRadius: '12px', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <div>
-                          <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-2)' }}>Accuracy Ratio Score</span>
-                          <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>Proportional evaluation of input validity.</p>
+                          <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-2)' }}>Text Quality Score</span>
+                          <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>Accuracy based on initial input.</p>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px' }}>
                           <span style={{ fontSize: '42px', fontWeight: 700, color: qualityScore > 80 ? 'var(--green)' : qualityScore > 50 ? 'var(--amber)' : 'var(--red)' }}>
@@ -224,32 +228,99 @@ const burdenScore = Math.round((words -errors) / words)*100;
                       {/* Formula Display */}
                       <div style={{ marginTop: '20px', padding: '12px', background: 'var(--bg)', borderRadius: '8px', border: '1px dashed var(--border2)', fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', color: 'var(--muted)' }}>
                         <div style={{ marginBottom: '6px', color: 'var(--text-2)', fontWeight: 500 }}>Applied Formula:</div>
-                        <div>Score = (Words / (Words + Errors)) * 100</div>
-                        <div style={{ marginTop: '6px', color: 'var(--accent)' }}>Calculation: ({words} / ({words} + {errors})) * 100</div>
+                        <div>Score = ((Words - Errors) / Words) × 100</div>
+                        <div style={{ marginTop: '6px', color: 'var(--accent)' }}>Calculation: (({words} - {totalErrors}) / {words}) × 100</div>
                       </div>
                     </div>
 
-                    {/* Panel 2: Error Density (Rho) */}
-                    {/* Panel 2: Correction Burden */}
-                    <div style={{ padding: '24px', background: 'var(--surface-alt)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                    {/* Panel 2: Overall Confidence */}
+                    <div style={{ padding: '24px', background: 'var(--surface-alt)', borderRadius: '12px', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <div>
-                          <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-2)' }}>Correction Burden</span>
-                          <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>Projected number of errors per 100 words.</p>
+                          <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-2)' }}>Overall Confidence</span>
+                          <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>Model certainty in applied corrections.</p>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px' }}>
                           <span style={{ fontSize: '42px', fontWeight: 700, color: 'var(--accent)' }}>
-                            {burdenScore}
+                            {Math.round(confidence * 100)}%
                           </span>
-                          <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--muted)', marginLeft: '4px' }}>errors</span>
                         </div>
                       </div>
                       
                       {/* Formula Display */}
                       <div style={{ marginTop: '20px', padding: '12px', background: 'var(--bg)', borderRadius: '8px', border: '1px dashed var(--border2)', fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', color: 'var(--muted)' }}>
-                        <div style={{ marginBottom: '6px', color: 'var(--text-2)', fontWeight: 500 }}>Applied Formula:</div>
-                        <div>Burden = (Total Errors / Total Words) * 100</div>
-                        <div style={{ marginTop: '6px', color: 'var(--accent)' }}>Calculation: ({errors} / {words}) * 100</div>
+                        <div style={{ marginBottom: '6px', color: 'var(--text-2)', fontWeight: 500 }}>Metric:</div>
+                        <div>System generated confidence</div>
+                        <div style={{ marginTop: '6px', color: 'var(--accent)' }}>Raw Value: {confidence}</div>
+                      </div>
+                    </div>
+
+                    {/* Panel 3: Total Corrections */}
+                    <div style={{ padding: '24px', background: 'var(--surface-alt)', borderRadius: '12px', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-2)' }}>Total Corrections</span>
+                          <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>Total distinct fixes applied to text.</p>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px' }}>
+                          <span style={{ fontSize: '42px', fontWeight: 700, color: 'var(--accent)' }}>
+                            {totalErrors}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {/* Breakdown Display */}
+                      <div style={{ marginTop: '20px', padding: '12px', background: 'var(--bg)', borderRadius: '8px', border: '1px dashed var(--border2)', fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', color: 'var(--muted)' }}>
+                        <div style={{ marginBottom: '6px', color: 'var(--text-2)', fontWeight: 500 }}>Error Breakdown:</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span>Spelling: {spell}</span>
+                          <span>Grammar: {grammar}</span>
+                        </div>
+                        <div style={{ marginTop: '6px' }}>
+                          <span>Homophones: {homophone}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Panel 4: Grammar Fixes */}
+                    <div style={{ padding: '24px', background: 'var(--surface-alt)', borderRadius: '12px', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-2)' }}>Grammar Fixes</span>
+                          <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>Syntax and structural adjustments.</p>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px' }}>
+                          <span style={{ fontSize: '42px', fontWeight: 700, color: 'var(--accent)' }}>
+                            {grammar}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {/* Engine Display */}
+                      <div style={{ marginTop: '20px', padding: '12px', background: 'var(--bg)', borderRadius: '8px', border: '1px dashed var(--border2)', fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', color: 'var(--muted)' }}>
+                        <div style={{ marginBottom: '6px', color: 'var(--text-2)', fontWeight: 500 }}>Processing Engine:</div>
+                        <div style={{ color: 'var(--accent)' }}>T5 Transformer Model</div>
+                      </div>
+                    </div>
+
+                    {/* Panel 5: Spelling Fixes */}
+                    <div style={{ padding: '24px', background: 'var(--surface-alt)', borderRadius: '12px', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-2)' }}>Spelling Fixes</span>
+                          <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>Typographical and orthographic corrections.</p>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px' }}>
+                          <span style={{ fontSize: '42px', fontWeight: 700, color: 'var(--accent)' }}>
+                            {spell}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {/* Engine Display */}
+                      <div style={{ marginTop: '20px', padding: '12px', background: 'var(--bg)', borderRadius: '8px', border: '1px dashed var(--border2)', fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', color: 'var(--muted)' }}>
+                        <div style={{ marginBottom: '6px', color: 'var(--text-2)', fontWeight: 500 }}>Processing Engine:</div>
+                        <div style={{ color: 'var(--accent)' }}>SymSpell Dictionary</div>
                       </div>
                     </div>
 
