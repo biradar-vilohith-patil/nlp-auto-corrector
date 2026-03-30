@@ -22,7 +22,9 @@ RUN pip install --user -r requirements.txt
 RUN python -m spacy download en_core_web_sm
 
 # Copy the rest of the application code
-COPY --chown=user . .
+# Copy the backend application code into the container
+COPY --chown=user backend/app ./app
+COPY --chown=user backend/README.md .
 
 # Expose the standard Hugging Face port
 EXPOSE 7860
