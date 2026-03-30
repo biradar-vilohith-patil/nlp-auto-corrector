@@ -334,12 +334,12 @@ export default function Home() {
 
       {/* Footer */}
       <motion.p
-        style={{ textAlign: 'center', marginTop: 64, fontSize: 11.5, color: 'var(--muted2)' }}
+        style={{ textAlign: 'center', marginTop: 64, fontSize: 11.5, color: 'black' }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.2 }}
       >
-        CVR College of Engineering · CSE(DS) · NLP Auto-Corrector
+      #BuiltWithConfidence. 
       </motion.p>
     </div>
   )
