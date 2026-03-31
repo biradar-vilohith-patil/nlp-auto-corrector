@@ -15,7 +15,7 @@ from app.pipeline.homophone_resolver import HomophoneResolver
 from app.pipeline.grammar_corrector import GrammarCorrector
 from app.pipeline.scorer import Scorer
 from app.models.model_loader import ModelLoader
-from app.utils.text_utils import split_into_sentences, normalise_whitespace, build_word_diffs
+from app.utils.text_utils import split_into_sentences, normalise_whitespace, build_word_diffs, capitalise_sentences
 
 class NLPProcessor:
     def __init__(self, settings: Settings):
@@ -97,6 +97,10 @@ class NLPProcessor:
                 diffs = build_word_diffs(current, grammar_text, "grammar")
                 all_diffs.extend(diffs)
                 current = grammar_text
+
+        # Ensure every sentence starts with a capital letter.
+        # Runs after all corrections so the final output is always properly cased.
+        current = capitalise_sentences(current)
 
         confidence = 1.0
         if self._scorer:
