@@ -1,8 +1,4 @@
-"""
-app/utils/text_utils.py
-────────────────────────
-Shared text processing helpers used across the pipeline.
-"""
+
 
 from __future__ import annotations
 
@@ -10,7 +6,6 @@ import re
 import unicodedata
 
 
-# ── Whitespace normalisation ──────────────────────────────────────────────────
 
 def normalise_whitespace(text: str) -> str:
     """Collapse multiple spaces / tabs into one; strip leading/trailing."""
@@ -19,8 +14,6 @@ def normalise_whitespace(text: str) -> str:
     text = re.sub(r"\n{3,}", "\n\n", text)        # max two consecutive newlines
     return text.strip()
 
-
-# ── Sentence splitting ────────────────────────────────────────────────────────
 
 _SENT_BOUNDARY = re.compile(
     r"(?<=[.!?])\s+(?=[A-Z])"      # punctuation followed by capital
@@ -39,7 +32,6 @@ def split_into_sentences(text: str) -> list[str]:
     return [p.strip() for p in parts if p.strip()]
 
 
-# ── Word-level diff ───────────────────────────────────────────────────────────
 
 def build_word_diffs(
     original: str,
@@ -102,3 +94,26 @@ def count_word_diffs(a: str, b: str) -> int:
         if x.lower() != y.lower():
             count += 1
     return count
+
+
+
+def capitalise_sentences(text: str) -> str:
+    """
+    Ensure the first letter of each sentence is capitalised:
+      - The very first character of the text.
+      - The first lowercase letter that follows '. ', '! ', or '? '.
+
+    Only targets lowercase letters so already-correct capitals and proper
+    nouns are left untouched.
+    """
+    if not text:
+        return text
+    # Capitalise the very first character of the whole text
+    text = text[0].upper() + text[1:]
+    # Capitalise the first lowercase letter after sentence-ending punctuation
+    text = re.sub(
+        r'([.!?])([ \t]+)([a-z])',
+        lambda m: m.group(1) + m.group(2) + m.group(3).upper(),
+        text,
+    )
+    return text
