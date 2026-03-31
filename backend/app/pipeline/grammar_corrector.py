@@ -96,6 +96,10 @@ class GrammarCorrector:
         if not sentence:
             return {"corrected": sentence, "fixes": 0}
 
+        # Fix object pronouns used as compound subjects BEFORE T5 sees the sentence.
+        # T5 does not reliably catch "me and him" → "he and I", so we handle it here.
+        sentence = self._fix_subject_pronouns(sentence)
+
         try:
             prompt = self._settings.model_prefix + sentence
             inputs = self._tokenizer.encode(
@@ -112,6 +116,49 @@ class GrammarCorrector:
         except Exception as e:
             logger.error(f"T5 grammar correction error: {e}")
             return {"corrected": sentence, "fixes": 0}
+
+    # ── Subject pronoun correction ────────────────────────────────────────────
+
+    @staticmethod
+    def _fix_subject_pronouns(sentence: str) -> str:
+        """
+        Correct object pronouns used as compound subjects at sentence start.
+
+        Examples:
+            "Me and him went to the store"  →  "He and I went to the store"
+            "Him and me went to the store"  →  "He and I went to the store"
+            "Me and her said hello"         →  "She and I said hello"
+            "Her and me said hello"         →  "She and I said hello"
+            "Me and them are going"         →  "They and I are going"
+
+        Only fires when BOTH words are object pronouns at the very start of the
+        sentence, so "Give it to me and him" is not affected.
+        """
+        _OBJ_TO_SUBJ = {
+            'me': 'I', 'him': 'he', 'her': 'she', 'them': 'they', 'us': 'we',
+        }
+
+        # Match two object pronouns joined by "and" at the very start of the sentence
+        pattern = re.compile(
+            r'^(me|him|her|them|us)\s+and\s+(me|him|her|them|us)(?=\s|[,.]|$)',
+            re.I,
+        )
+
+        m = pattern.match(sentence)
+        if not m:
+            return sentence
+
+        s1 = _OBJ_TO_SUBJ.get(m.group(1).lower(), m.group(1).lower())
+        s2 = _OBJ_TO_SUBJ.get(m.group(2).lower(), m.group(2).lower())
+
+        # Conventional English places "I" last: "He and I", not "I and he"
+        if s1 == 'I' and s2 != 'I':
+            s1, s2 = s2, s1
+
+        # The first word is always capitalised (sentence start)
+        s1 = s1[0].upper() + s1[1:]
+
+        return s1 + ' and ' + s2 + sentence[m.end():]
 
     # ── Refinement ────────────────────────────────────────────────────────────
 
