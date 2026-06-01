@@ -7,7 +7,7 @@ RUN pip install --no-cache-dir torch==2.3.1+cpu --index-url https://download.pyt
 
 RUN useradd -m -u 1000 appuser
 WORKDIR /app
-
+#Simple edit
 # UPDATE: Tell Docker to grab requirements from inside the backend folder
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
